@@ -1,5 +1,8 @@
-import { sum } from "../index";
+import { Digitization } from "../index";
 
 test("sum must be right", () => {
-  expect(sum(2, 5)).toBe(7);
+
+  const digi = new Digitization('lalal' , 'lalala')
+
+  expect(digi.sum(2, 5)).toBe(7);
 });
