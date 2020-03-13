@@ -1,4 +1,4 @@
 export interface IGeometry {
-  type: string;
+  type: 'Point' | 'LineString' | 'Polygon' | 'MultiPoint' | 'MultiLineString' | 'MultiPolygon';
   coordinates: number[] | number[][];
 }
