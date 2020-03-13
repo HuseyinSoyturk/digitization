@@ -2,8 +2,8 @@
   "name": "digitization",
   "version": "1.0.1",
   "description": "A module for digitization with geoserver.",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "tsnd --respawn src/index.ts",
