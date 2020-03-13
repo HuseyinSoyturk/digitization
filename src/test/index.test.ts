@@ -1,4 +1,4 @@
-import { Digitization } from "../index";
+import Digitization from '../index';
 import { IGeoJson } from "../interface/IGeoJson";
 
 const mockGeoJson: IGeoJson = {
