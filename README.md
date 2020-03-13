@@ -1,2 +1,3 @@
-# travis-test
-For testing travis ci
+# Digitization
+
+A module for digitization with geoserver.

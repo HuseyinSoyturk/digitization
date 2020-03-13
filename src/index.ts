@@ -1,7 +1,7 @@
 import { IGeoJson } from "./interface/IGeoJson";
 import builder from "xmlbuilder";
 
-export class Digitization {
+class Digitization {
   host: string;
   workspace: string;
   hasZ: boolean;
@@ -94,3 +94,5 @@ export class Digitization {
     return "";
   }
 }
+
+export default Digitization;
