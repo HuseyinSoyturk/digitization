@@ -8,9 +8,15 @@
     "lib/**/*"
   ],
   "scripts": {
+    "test": "jest --config jestconfig.json",
     "build": "tsc",
-    "start": "tsnd --respawn src/index.ts",
-    "test": "jest --config ./jestconfig.json"
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -23,9 +29,12 @@
     "@types/node": "^13.9.0",
     "@types/xmlbuilder": "^11.0.1",
     "jest": "^25.1.0",
+    "prettier": "^1.19.1",
     "ts-jest": "^25.2.1",
     "ts-node": "^8.6.2",
     "ts-node-dev": "^1.0.0-pre.44",
+    "tslint": "^6.1.0",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.8.3"
   },
   "dependencies": {
