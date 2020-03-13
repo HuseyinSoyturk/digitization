@@ -4,10 +4,15 @@
   "description": "A module for digitization with geoserver.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": ["lib/**/*"],
   "scripts": {
     "build": "tsc",
     "start": "tsnd --respawn src/index.ts",
     "test": "jest --config ./jestconfig.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HuseyinSoyturk/digitization.git"
   },
   "author": "Huseyin Soyturk",
   "license": "MIT",
