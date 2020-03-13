@@ -52,7 +52,6 @@ class Digitization {
         coordinateString = innerCoordinateArray.join(' ');
         break;
       case 'LineString':
-
         break;
       case 'MultiLineString':
         break;
