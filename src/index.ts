@@ -1,8 +1,6 @@
-import { IGeoJson } from './interface/IGeoJson';
 import XmlBuilder from 'xmlbuilder';
-import { IOptions } from './interface/interfaces';
-import { Operation, GeometryType, SrsName, SrsDimension } from './enums/enums';
-import { IPoint, IMultiPoint, ILineString, IMultiLineString, IPolygon, IMultiPolygon } from './interface/IGeometry';
+import { IOptions, IGeoJson, IGeometry } from './interfaces';
+import { Operation, GeometryType, SrsName, SrsDimension } from './enums';
 
 class Digitization {
   options: IOptions = {
@@ -235,10 +233,7 @@ class Digitization {
    * @param srsDimention - Dimension of geometry that is belongs of feature
    * @returns - Joined point coordinates with space
    */
-  private joinedCoordinatesGenerator(
-    geometry: IPoint | IMultiPoint | ILineString | IMultiLineString | IPolygon | IMultiPolygon,
-    srsDimension: SrsDimension,
-  ): string {
+  private joinedCoordinatesGenerator(geometry: IGeometry, srsDimension: SrsDimension): string {
     const coordinates = [];
     switch (geometry.type) {
       case GeometryType.POINT:
@@ -246,7 +241,7 @@ class Digitization {
           coordinates.push(geometry.coordinates[0] + ' ' + geometry.coordinates[1]);
         } else {
           if (geometry.coordinates.length === 2) {
-            coordinates.push(geometry.coordinates.join(' ') + ' ' + 10);
+            coordinates.push(geometry.coordinates.join(' ') + ' ' + 0);
           } else {
             coordinates.push(geometry.coordinates.join(' '));
           }
@@ -256,13 +251,13 @@ class Digitization {
       case GeometryType.MULTIPOINT:
       case GeometryType.LINESTRING:
         if (srsDimension === SrsDimension.TWO_DIMENSION) {
-          for (const point of geometry.coordinates) {
+          for (const point of geometry.coordinates as number[][]) {
             coordinates.push(point[0] + ' ' + point[1]);
           }
         } else {
-          for (const point of geometry.coordinates) {
+          for (const point of geometry.coordinates as number[][]) {
             if (point.length === 2) {
-              coordinates.push(point.join(' ') + ' ' + 10);
+              coordinates.push(point.join(' ') + ' ' + 0);
             } else {
               coordinates.push(point.join(' '));
             }
@@ -272,16 +267,16 @@ class Digitization {
       case GeometryType.MULTILINESTRING:
       case GeometryType.POLYGON:
         if (srsDimension === SrsDimension.TWO_DIMENSION) {
-          for (const line of geometry.coordinates) {
+          for (const line of geometry.coordinates as number[][][]) {
             for (const point of line) {
               coordinates.push(point[0] + ' ' + point[1]);
             }
           }
         } else {
-          for (const line of (geometry as IPolygon).coordinates) {
+          for (const line of geometry.coordinates as number[][][]) {
             for (const point of line) {
               if (point.length === 2) {
-                coordinates.push(point.join(' ') + ' ' + 10);
+                coordinates.push(point.join(' ') + ' ' + 0);
               } else {
                 coordinates.push(point.join(' '));
               }
@@ -291,7 +286,7 @@ class Digitization {
         break;
       case GeometryType.MULTIPOLYGON:
         if (srsDimension === SrsDimension.TWO_DIMENSION) {
-          for (const polygon of geometry.coordinates) {
+          for (const polygon of geometry.coordinates as number[][][][]) {
             for (const line of polygon) {
               for (const point of line) {
                 coordinates.push(point[0] + ' ' + point[1]);
@@ -299,11 +294,11 @@ class Digitization {
             }
           }
         } else {
-          for (const polygon of (geometry as IMultiPolygon).coordinates) {
+          for (const polygon of geometry.coordinates as number[][][][]) {
             for (const line of polygon) {
               for (const point of line) {
                 if (point.length === 2) {
-                  coordinates.push(point.join(' ') + ' ' + 10);
+                  coordinates.push(point.join(' ') + ' ' + 0);
                 } else {
                   coordinates.push(point.join(' '));
                 }

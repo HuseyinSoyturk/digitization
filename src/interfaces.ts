@@ -1,4 +1,4 @@
-import { Operation, SrsName, SrsDimension } from '../enums/enums';
+import { SrsName, SrsDimension } from './enums';
 
 /**
  * operation -> is execute to the feature on Geoserver
@@ -14,4 +14,21 @@ export interface IOptions {
   geometryName?: string;
   srsName?: SrsName;
   srsDimension: SrsDimension;
+}
+
+export interface IGeometry {
+  type: 'Point' | 'MultiPoint' | 'LineString' | 'MultiLineString' | 'Polygon' | 'MultiPolygon';
+  coordinates: number[] | number[][] | number[][][] | number[][][][];
+}
+
+export interface IGeoJson {
+  type: string;
+  geometry: IGeometry;
+  properties: ICustomObject;
+  id?: string;
+  geometry_name?: string;
+}
+
+interface ICustomObject {
+  [key: string]: any;
 }
