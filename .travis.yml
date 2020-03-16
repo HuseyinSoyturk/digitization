@@ -7,6 +7,12 @@ notifications:
       on_failure: always  
 language: node_js
 node_js:
+    - 10
+    - 11
     - 12
+scripts:
+    - npm install codecov -g
+after_success:
+    - codecov
 cache: 
     npm: true
