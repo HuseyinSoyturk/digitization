@@ -1,17 +1,12 @@
-notifications: 
-    email:
-      recipients:
-        - soyturk.huseyin61@gmail.com
-
-      on_success: always
-      on_failure: always  
 language: node_js
 node_js:
     - 10
     - 11
     - 12
+install:
+    - npm install -g codecov
 scripts:
     - npm run test
-    - codecov -f coverage/*.json
+    - codecov
 cache: 
     npm: true
