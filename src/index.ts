@@ -323,7 +323,6 @@ class Digitization {
       headers: { 'Content-Type': 'text/xml' },
     })
       .then(res => res.json())
-      .then(json => console.log(json));
   }
 }
 
