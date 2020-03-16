@@ -15,6 +15,10 @@ class Digitization {
     this.options = options;
   }
 
+  sum(a: number, b: number): number {
+    return a + b;
+  }
+
   /**
    * Insert feature to Geoserver
    *
@@ -24,7 +28,7 @@ class Digitization {
   insert(feature: IGeoJson, typeName: string): void {
     const properties = feature.properties;
     const geometry = feature.geometry;
-    const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension);
+    const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
 
     const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
       .att({
@@ -106,7 +110,7 @@ class Digitization {
   update(feature: IGeoJson, typeName: string): void {
     const properties = feature.properties;
     const geometry = feature.geometry;
-    const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension);
+    const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
 
     const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
       .att({

@@ -13,7 +13,7 @@ export interface IOptions {
   workspace: string;
   geometryName?: string;
   srsName?: SrsName;
-  srsDimension: SrsDimension;
+  srsDimension?: SrsDimension;
 }
 
 export interface IGeometry {
