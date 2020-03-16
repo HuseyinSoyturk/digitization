@@ -6,7 +6,7 @@ node_js:
 install:
     - npm install -g codecov
 scripts:
-    - npm run test
+    - npx jest --coverage
     - codecov
 cache: 
     npm: true
