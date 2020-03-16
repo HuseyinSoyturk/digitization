@@ -5,9 +5,8 @@ node_js:
     - 12
 install:
     - npm install -g codecov
-    - npm install -g jest
 scripts:
-    - npm run test
+    - nepm run test
     - codecov
 cache: 
     npm: true
