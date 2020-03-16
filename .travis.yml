@@ -11,8 +11,7 @@ node_js:
     - 11
     - 12
 scripts:
-    - npm install codecov -g
-after_success:
-    - codecov
+    - npm run test
+    - codecov -f coverage/*.json
 cache: 
     npm: true
