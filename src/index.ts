@@ -2,271 +2,230 @@ import { IGeoJson } from './interface/IGeoJson';
 import XmlBuilder from 'xmlbuilder';
 import { IOptions } from './interface/interfaces';
 import { Operation, GeometryType, SrsName, SrsDimension } from './enums/enums';
-import { IGeometry } from './interface/IGeometry';
+import { IPoint, IMultiPoint, ILineString, IMultiLineString, IPolygon, IMultiPolygon } from './interface/IGeometry';
 
 class Digitization {
-  host: string;
-  workspace: string;
-  hasZ: boolean;
+  options: IOptions = {
+    url: '',
+    workspace: '',
+    srsDimension: SrsDimension.THREE_DIMENSION,
+    srsName: SrsName.EPSG_4326,
+    geometryName: 'geometry',
+  };
 
-  constructor(host: string, workspace: string, hasZ: boolean = false) {
-    this.host = host;
-    this.workspace = workspace;
-    this.hasZ = hasZ;
+  constructor(options: IOptions) {
+    this.options = options;
   }
-
-  sum(a: number, b: number): number {
-    return a + b;
-  }
-
-      /**
-     * Prompts the feature to functions via Operations
-     *
-     * @param feature - Feature of GeoJson
-     * @param options - Information of the feature and the layer
-     * @returns - Xml string that will be post
-     */
-    public xmlGenerator(feature: IGeoJson, options: IOptions): string {
-
-      let xml: string = '';
-      if (feature) {
-          const createdOptions = this.createOptions(feature, options);
-
-          switch (createdOptions.operation) {
-              case Operation.INSERT:
-                  xml = this.insertXmlGenerator(feature, createdOptions);
-                  break;
-              case Operation.UPDATE:
-                  xml = this.updateXmlGenerator(feature, createdOptions);
-                  break;
-              case Operation.DELETE:
-                  xml = this.deleteXmlGenerator(feature, createdOptions);
-                  break;
-          }
-      }
-
-      return xml;
-  }
-
 
   /**
-   * Generates xml to insert the feature to Geoserver
+   * Insert feature to Geoserver
    *
    * @param feature - Feature of GeoJson
-   * @param options - Information of the feature and the layer
-   * @returns - Xml that is needed to insert the feature on Geoserver
+   * @param typeName - Layer Name for Insert
    */
-  private insertXmlGenerator(feature: IGeoJson, options: IOptions): string {
-      const properties = feature.properties;
-      const geometry = feature.geometry;
-      const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, options.srsDimension);
+  insert(feature: IGeoJson, typeName: string): void {
+    const properties = feature.properties;
+    const geometry = feature.geometry;
+    const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension);
 
-      const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
-          .att({
-              xmlns: 'http://www.opengis.net/wfs',
-              service: 'WFS',
-              version: '1.1.0',
-              'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-              'xsi:schemaLocation': 'http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd'
-          })
-          .ele(Operation.INSERT)
-          .ele(options.typeName, { xmlns: options.workspace });
+    const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
+      .att({
+        xmlns: 'http://www.opengis.net/wfs',
+        service: 'WFS',
+        version: '1.1.0',
+        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'xsi:schemaLocation': 'http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd',
+      })
+      .ele(Operation.INSERT)
+      .ele(typeName, { xmlns: this.options.workspace });
 
-      for (const property of Object.keys(properties)) {
-          if (properties[property] !== undefined) {
-              xml.ele(property, properties[property]);
-          }
+    for (const property of Object.keys(properties)) {
+      if (properties[property] !== undefined) {
+        xml.ele(property, properties[property]);
       }
+    }
 
-      switch (geometry.type) {
-          case GeometryType.POINT:
-              xml.ele(options.geometryName)
-                  .ele(GeometryType.POINT, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('pos', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.LINESTRING:
-              xml.ele(options.geometryName)
-                  .ele(GeometryType.LINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.POLYGON:
-              xml.ele(options.geometryName)
-                  .ele(GeometryType.POLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('exterior')
-                  .ele('LinearRing', { srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.MULTIPOINT:
-              xml.ele(options.geometryName)
-                  .ele(GeometryType.MULTIPOINT, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('pointMember')
-                  .ele('Point', { srsName: options.srsName })
-                  .ele('pos', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.MULTILINESTRING:
-              xml.ele(options.geometryName)
-                  .ele(GeometryType.MULTILINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('lineStringMember')
-                  .ele('LineString', { srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.MULTIPOLYGON:
-              xml.ele(options.geometryName)
-                  .ele(GeometryType.MULTIPOLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('polygonMember')
-                  .ele('Polygon', { srsName: options.srsName })
-                  .ele('exterior')
-                  .ele('LinearRing', { srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-      }
+    switch (geometry.type) {
+      case GeometryType.POINT:
+        xml
+          .ele(this.options.geometryName)
+          .ele(GeometryType.POINT, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('pos', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.LINESTRING:
+        xml
+          .ele(this.options.geometryName)
+          .ele(GeometryType.LINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.POLYGON:
+        xml
+          .ele(this.options.geometryName)
+          .ele(GeometryType.POLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('exterior')
+          .ele('LinearRing', { srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.MULTIPOINT:
+        xml
+          .ele(this.options.geometryName)
+          .ele(GeometryType.MULTIPOINT, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('pointMember')
+          .ele('Point', { srsName: this.options.srsName })
+          .ele('pos', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.MULTILINESTRING:
+        xml
+          .ele(this.options.geometryName)
+          .ele(GeometryType.MULTILINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('lineStringMember')
+          .ele('LineString', { srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.MULTIPOLYGON:
+        xml
+          .ele(this.options.geometryName)
+          .ele(GeometryType.MULTIPOLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('polygonMember')
+          .ele('Polygon', { srsName: this.options.srsName })
+          .ele('exterior')
+          .ele('LinearRing', { srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+    }
 
-      return xml.end({ pretty: true });
+    const finalXml = xml.end({ pretty: true });
+
+    this.fetchTheData(finalXml);
   }
 
   /**
    * Generates xml to update the feature on Geoserver
    *
    * @param feature - Feature of GeoJson
-   * @param options - Information of the feature and the layer
-   * @returns - Xml that is needed to update the feature on Geoserver
+   * @param typeName - Layer Name for Update
    */
-  private updateXmlGenerator(feature: IGeoJson, options: IOptions): string {
-      const properties = feature.properties;
-      const geometry = feature.geometry;
-      const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, options.srsDimension);
+  update(feature: IGeoJson, typeName: string): void {
+    const properties = feature.properties;
+    const geometry = feature.geometry;
+    const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension);
 
-      const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
-          .att({
-              xmlns: 'http://www.opengis.net/wfs',
-              service: 'WFS',
-              version: '1.1.0',
-              'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-              'xsi:schemaLocation': 'http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd'
-          })
-          .ele(Operation.UPDATE, { typeName: 'feature:' + options.typeName, 'xmlns:feature': options.workspace });
+    const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
+      .att({
+        xmlns: 'http://www.opengis.net/wfs',
+        service: 'WFS',
+        version: '1.1.0',
+        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'xsi:schemaLocation': 'http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd',
+      })
+      .ele(Operation.UPDATE, { typeName: 'feature:' + typeName, 'xmlns:feature': this.options.workspace });
 
-      for (const property of Object.keys(properties)) {
-          if (properties[property] !== undefined) {
-              xml.ele('Property')
-                  .ele('Name', property).up()
-                  .ele('Value', properties[property]);
-          }
+    for (const property of Object.keys(properties)) {
+      if (properties[property] !== undefined) {
+        xml
+          .ele('Property')
+          .ele('Name', property)
+          .up()
+          .ele('Value', properties[property]);
       }
+    }
 
-      switch (geometry.type) {
-          case GeometryType.POINT:
-              xml.ele('Property')
-                  .ele('Name', {}, options.geometryName).up()
-                  .ele('Value')
-                  .ele(GeometryType.POINT, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('pos', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.LINESTRING:
-              xml.ele('Property')
-                  .ele('Name', {}, options.geometryName).up()
-                  .ele('Value')
-                  .ele(GeometryType.LINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.POLYGON:
-              xml.ele('Property')
-                  .ele('Name', {}, options.geometryName).up()
-                  .ele('Value')
-                  .ele(GeometryType.POLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('exterior')
-                  .ele('LinearRing', { srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.MULTIPOINT:
-              xml.ele('Property')
-                  .ele('Name', {}, options.geometryName).up()
-                  .ele('Value')
-                  .ele(GeometryType.MULTIPOINT, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('pointMember')
-                  .ele('Point', { srsName: options.srsName })
-                  .ele('pos', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.MULTILINESTRING:
-              xml.ele('Property')
-                  .ele('Name', {}, options.geometryName).up()
-                  .ele('Value')
-                  .ele(GeometryType.MULTILINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('lineStringMember')
-                  .ele('LineString', { srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-          case GeometryType.MULTIPOLYGON:
-              xml.ele('Property')
-                  .ele('Name', {}, options.geometryName).up()
-                  .ele('Value')
-                  .ele(GeometryType.MULTIPOLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: options.srsName })
-                  .ele('polygonMember')
-                  .ele('Polygon', { srsName: options.srsName })
-                  .ele('exterior')
-                  .ele('LinearRing', { srsName: options.srsName })
-                  .ele('posList', { srsDimension: options.srsDimension }, joinedCoordinates);
-              break;
-      }
+    switch (geometry.type) {
+      case GeometryType.POINT:
+        xml
+          .ele('Property')
+          .ele('Name', {}, this.options.geometryName)
+          .up()
+          .ele('Value')
+          .ele(GeometryType.POINT, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('pos', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.LINESTRING:
+        xml
+          .ele('Property')
+          .ele('Name', {}, this.options.geometryName)
+          .up()
+          .ele('Value')
+          .ele(GeometryType.LINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.POLYGON:
+        xml
+          .ele('Property')
+          .ele('Name', {}, this.options.geometryName)
+          .up()
+          .ele('Value')
+          .ele(GeometryType.POLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('exterior')
+          .ele('LinearRing', { srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.MULTIPOINT:
+        xml
+          .ele('Property')
+          .ele('Name', {}, this.options.geometryName)
+          .up()
+          .ele('Value')
+          .ele(GeometryType.MULTIPOINT, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('pointMember')
+          .ele('Point', { srsName: this.options.srsName })
+          .ele('pos', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.MULTILINESTRING:
+        xml
+          .ele('Property')
+          .ele('Name', {}, this.options.geometryName)
+          .up()
+          .ele('Value')
+          .ele(GeometryType.MULTILINESTRING, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('lineStringMember')
+          .ele('LineString', { srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+      case GeometryType.MULTIPOLYGON:
+        xml
+          .ele('Property')
+          .ele('Name', {}, this.options.geometryName)
+          .up()
+          .ele('Value')
+          .ele(GeometryType.MULTIPOLYGON, { xmlns: 'http://www.opengis.net/gml', srsName: this.options.srsName })
+          .ele('polygonMember')
+          .ele('Polygon', { srsName: this.options.srsName })
+          .ele('exterior')
+          .ele('LinearRing', { srsName: this.options.srsName })
+          .ele('posList', { srsDimension: this.options.srsDimension }, joinedCoordinates);
+        break;
+    }
 
-      xml.ele('Filter', { xmlns: 'http://www.opengis.net/ogc' })
-          .ele('FeatureId', { fid: feature.id });
+    xml.ele('Filter', { xmlns: 'http://www.opengis.net/ogc' }).ele('FeatureId', { fid: feature.id });
 
-      return xml.end({ pretty: true });
+    const finalXml = xml.end({ pretty: true });
+
+    this.fetchTheData(finalXml);
   }
 
   /**
    * Generates xml to delete the feature from Geoserver
    *
    * @param feature - Feature of GeoJson
-   * @param options - Information of the feature and the layer that is belongs of feature
-   * @returns - Xml that is needed to delete the feature from Geoserver
+   * @param typeName - Layer Name for Delete
    */
-  private deleteXmlGenerator(feature: IGeoJson, options: IOptions): string {
-      const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
-          .att({
-              xmlns: 'http://www.opengis.net/wfs',
-              service: 'WFS',
-              version: '1.1.0',
-              'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-              'xsi:schemaLocation': 'http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd'
-          })
-          .ele(Operation.DELETE, { typeName: 'feature:' + options.typeName, 'xmlns:feature': options.workspace })
-          .ele('Filter', { xmlns: 'http://www.opengis.net/ogc' })
-          .ele('FeatureId', { fid: feature.id });
+  delete(feature: IGeoJson, typeName: string): void {
+    const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
+      .att({
+        xmlns: 'http://www.opengis.net/wfs',
+        service: 'WFS',
+        version: '1.1.0',
+        'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        'xsi:schemaLocation': 'http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd',
+      })
+      .ele(Operation.DELETE, { typeName: 'feature:' + typeName, 'xmlns:feature': this.options.workspace })
+      .ele('Filter', { xmlns: 'http://www.opengis.net/ogc' })
+      .ele('FeatureId', { fid: feature.id });
 
-      return xml.end({ pretty: true });
-  }
+    const finalXml = xml.end({ pretty: true });
 
-  /**
-   * @param feature - Feature of GeoJson
-   * @param options - Information of the feature and the layer that is belongs of feature
-   */
-  private createOptions(feature: IGeoJson, options: IOptions): IOptions {
-      const createdOptions = {
-          operation: options.operation,
-          workspace: options.workspace,
-          typeName: options.typeName,
-          geometryName: 'geometry',
-          srsName: SrsName.EPSG_4326,
-          srsDimension: SrsDimension.THREE_DIMENSION,
-      };
-
-      if (options.geometryName) {
-          createdOptions.geometryName = options.geometryName;
-      } else if (feature.geometry_name) {
-          createdOptions.geometryName = feature.geometry_name;
-      }
-
-      if (options.srsName) {
-          createdOptions.srsName = options.srsName;
-      }
-
-      if (options.srsDimension) {
-          createdOptions.srsDimension = options.srsDimension;
-      }
-
-      return createdOptions;
+    this.fetchTheData(finalXml);
   }
 
   /**
@@ -276,83 +235,96 @@ class Digitization {
    * @param srsDimention - Dimension of geometry that is belongs of feature
    * @returns - Joined point coordinates with space
    */
-  private joinedCoordinatesGenerator(geometry: IGeometry, srsDimension: SrsDimension): string {
-      const coordinates = [];
-      switch (geometry.type) {
-          case GeometryType.POINT:
-              if (srsDimension === SrsDimension.TWO_DIMENSION) {
-                  coordinates.push(geometry.coordinates[0] + ' ' + geometry.coordinates[1]);
-              } else {
-                  if (geometry.coordinates.length === 2) {
-                      coordinates.push(geometry.coordinates.join(' ') + ' ' + 10);
-                  } else {
-                      coordinates.push(geometry.coordinates.join(' '));
-                  }
-              }
+  private joinedCoordinatesGenerator(
+    geometry: IPoint | IMultiPoint | ILineString | IMultiLineString | IPolygon | IMultiPolygon,
+    srsDimension: SrsDimension,
+  ): string {
+    const coordinates = [];
+    switch (geometry.type) {
+      case GeometryType.POINT:
+        if (srsDimension === SrsDimension.TWO_DIMENSION) {
+          coordinates.push(geometry.coordinates[0] + ' ' + geometry.coordinates[1]);
+        } else {
+          if (geometry.coordinates.length === 2) {
+            coordinates.push(geometry.coordinates.join(' ') + ' ' + 10);
+          } else {
+            coordinates.push(geometry.coordinates.join(' '));
+          }
+        }
 
-              break;
-          case GeometryType.MULTIPOINT:
-          case GeometryType.LINESTRING:
-              if (srsDimension === SrsDimension.TWO_DIMENSION) {
-                  for (const point of geometry.coordinates) {
-                      coordinates.push(point[0] + ' ' + point[1]);
-                  }
+        break;
+      case GeometryType.MULTIPOINT:
+      case GeometryType.LINESTRING:
+        if (srsDimension === SrsDimension.TWO_DIMENSION) {
+          for (const point of geometry.coordinates) {
+            coordinates.push(point[0] + ' ' + point[1]);
+          }
+        } else {
+          for (const point of geometry.coordinates) {
+            if (point.length === 2) {
+              coordinates.push(point.join(' ') + ' ' + 10);
+            } else {
+              coordinates.push(point.join(' '));
+            }
+          }
+        }
+        break;
+      case GeometryType.MULTILINESTRING:
+      case GeometryType.POLYGON:
+        if (srsDimension === SrsDimension.TWO_DIMENSION) {
+          for (const line of geometry.coordinates) {
+            for (const point of line) {
+              coordinates.push(point[0] + ' ' + point[1]);
+            }
+          }
+        } else {
+          for (const line of (geometry as IPolygon).coordinates) {
+            for (const point of line) {
+              if (point.length === 2) {
+                coordinates.push(point.join(' ') + ' ' + 10);
               } else {
-                  for (const point of geometry.coordinates) {
-                      if (point.length === 2) {
-                          coordinates.push(point.join(' ') + ' ' + 10);
-                      } else {
-                          coordinates.push(point.join(' '));
-                      }
-                  }
+                coordinates.push(point.join(' '));
               }
-              break;
-          case GeometryType.MULTILINESTRING:
-          case GeometryType.POLYGON:
-              if (srsDimension === SrsDimension.TWO_DIMENSION) {
-                  for (const line of geometry.coordinates) {
-                      for (const point of line) {
-                          coordinates.push(point[0] + ' ' + point[1]);
-                      }
-                  }
-              } else {
-                  for (const line of geometry.coordinates) {
-                      for (const point of line) {
-                          if (point.length === 2) {
-                              coordinates.push(point.join(' ') + ' ' + 10);
-                          } else {
-                              coordinates.push(point.join(' '));
-                          }
-                      }
-                  }
+            }
+          }
+        }
+        break;
+      case GeometryType.MULTIPOLYGON:
+        if (srsDimension === SrsDimension.TWO_DIMENSION) {
+          for (const polygon of geometry.coordinates) {
+            for (const line of polygon) {
+              for (const point of line) {
+                coordinates.push(point[0] + ' ' + point[1]);
               }
-              break;
-          case GeometryType.MULTIPOLYGON:
-              if (srsDimension === SrsDimension.TWO_DIMENSION) {
-                  for (const polygon of geometry.coordinates) {
-                      for (const line of polygon) {
-                          for (const point of line) {
-                              coordinates.push(point[0] + ' ' + point[1]);
-                          }
-                      }
-                  }
-              } else {
-                  for (const polygon of geometry.coordinates) {
-                      for (const line of polygon) {
-                          for (const point of line) {
-                              if (point.length === 2) {
-                                  coordinates.push(point.join(' ') + ' ' + 10);
-                              } else {
-                                  coordinates.push(point.join(' '));
-                              }
-                          }
-                      }
-                  }
+            }
+          }
+        } else {
+          for (const polygon of (geometry as IMultiPolygon).coordinates) {
+            for (const line of polygon) {
+              for (const point of line) {
+                if (point.length === 2) {
+                  coordinates.push(point.join(' ') + ' ' + 10);
+                } else {
+                  coordinates.push(point.join(' '));
+                }
               }
-              break;
-      }
+            }
+          }
+        }
+        break;
+    }
 
-      return coordinates.join(' ');
+    return coordinates.join(' ');
+  }
+
+  fetchTheData(xml: string) {
+    fetch(this.options.url, {
+      method: 'post',
+      body: JSON.stringify(xml),
+      headers: { 'Content-Type': 'text/xml' },
+    })
+      .then(res => res.json())
+      .then(json => console.log(json));
   }
 }
 

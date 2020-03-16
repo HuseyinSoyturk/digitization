@@ -27,6 +27,7 @@
   "devDependencies": {
     "@types/jest": "^25.1.4",
     "@types/node": "^13.9.0",
+    "@types/node-fetch": "^2.5.5",
     "@types/xmlbuilder": "^11.0.1",
     "codecov": "^3.6.5",
     "jest": "^25.1.0",
@@ -39,6 +40,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "node-fetch": "^2.6.0",
     "xmlbuilder": "^15.0.0"
   }
 }

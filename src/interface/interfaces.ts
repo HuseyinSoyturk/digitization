@@ -1,4 +1,4 @@
-import { Operation, SrsName, SrsDimension } from "../enums/enums";
+import { Operation, SrsName, SrsDimension } from '../enums/enums';
 
 /**
  * operation -> is execute to the feature on Geoserver
@@ -9,10 +9,9 @@ import { Operation, SrsName, SrsDimension } from "../enums/enums";
  * srsDimension -> optional and default is 3
  */
 export interface IOptions {
-    operation: Operation;
-    workspace: string;
-    typeName: string;
-    geometryName?: string;
-    srsName?: SrsName;
-    srsDimension?: SrsDimension;
+  url: string;
+  workspace: string;
+  geometryName?: string;
+  srsName?: SrsName;
+  srsDimension: SrsDimension;
 }
