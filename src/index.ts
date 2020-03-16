@@ -315,7 +315,7 @@ class Digitization {
   fetchTheData(xml: string) {
     fetch(this.options.url, {
       method: 'post',
-      body: JSON.stringify(xml),
+      body: xml,
       headers: { 'Content-Type': 'text/xml' },
     })
       .then(res => res.json())
