@@ -3,5 +3,7 @@
         "tslint:recommended",
         "tslint-config-prettier"
     ],
-    "no-console": ["error", { "allow": ["warn", "error"] }]
+    "rules": {
+        "no-console": false
+    }
 }

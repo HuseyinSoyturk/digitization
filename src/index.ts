@@ -321,7 +321,7 @@ class Digitization {
       method: 'post',
       body: xml,
       headers: { 'Content-Type': 'text/xml' },
-    }).then(res => console.warn(res));
+    }).then(res => console.log(res));
   }
 }
 
