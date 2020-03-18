@@ -25,7 +25,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Insert
    */
-  async insert(feature: IGeoJson, typeName: string) {
+  insert(feature: IGeoJson, typeName: string) {
     const properties = feature.properties;
     const geometry = feature.geometry;
     const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
@@ -97,13 +97,7 @@ class Digitization {
     }
 
     const finalXml = xml.end({ pretty: true });
-
-    let returnString = '';
-    await this.fetchTheData(finalXml)
-      .then(res => res.text())
-      .then(body => (returnString = body));
-
-    return returnString;
+    this.fetchTheData(finalXml)
   }
 
   /**
@@ -112,7 +106,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Update
    */
-  async update(feature: IGeoJson, typeName: string) {
+  update(feature: IGeoJson, typeName: string) {
     const properties = feature.properties;
     const geometry = feature.geometry;
     const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
@@ -207,13 +201,7 @@ class Digitization {
     xml.ele('Filter', { xmlns: 'http://www.opengis.net/ogc' }).ele('FeatureId', { fid: feature.id });
 
     const finalXml = xml.end({ pretty: true });
-
-    let returnString = '';
-    await this.fetchTheData(finalXml)
-      .then(res => res.text())
-      .then(body => (returnString = body));
-
-    return returnString;
+    this.fetchTheData(finalXml)
   }
 
   /**
@@ -222,7 +210,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Delete
    */
-  async delete(feature: IGeoJson, typeName: string) {
+  delete(feature: IGeoJson, typeName: string) {
     const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
       .att({
         xmlns: 'http://www.opengis.net/wfs',
@@ -236,13 +224,7 @@ class Digitization {
       .ele('FeatureId', { fid: feature.id });
 
     const finalXml = xml.end({ pretty: true });
-
-    let returnString = '';
-    await this.fetchTheData(finalXml)
-      .then(res => res.text())
-      .then(body => (returnString = body));
-
-    return returnString;
+    this.fetchTheData(finalXml)
   }
 
   /**
@@ -331,7 +313,7 @@ class Digitization {
     return coordinates.join(' ');
   }
 
-  private async fetchTheData(xml: string) {
+  private fetchTheData(xml: string) {
     return fetch(this.options.url, {
       method: 'post',
       body: xml,
