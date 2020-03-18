@@ -98,12 +98,12 @@ class Digitization {
 
     const finalXml = xml.end({ pretty: true });
 
-    let returnString = ''
+    let returnString = '';
     await this.fetchTheData(finalXml)
       .then(res => res.text())
-      .then(body => returnString = body);
+      .then(body => (returnString = body));
 
-    return returnString;;
+    return returnString;
   }
 
   /**
@@ -208,12 +208,12 @@ class Digitization {
 
     const finalXml = xml.end({ pretty: true });
 
-    let returnString = ''
+    let returnString = '';
     await this.fetchTheData(finalXml)
       .then(res => res.text())
-      .then(body => returnString = body);
+      .then(body => (returnString = body));
 
-    return returnString;;
+    return returnString;
   }
 
   /**
@@ -237,12 +237,12 @@ class Digitization {
 
     const finalXml = xml.end({ pretty: true });
 
-    let returnString = ''
+    let returnString = '';
     await this.fetchTheData(finalXml)
       .then(res => res.text())
-      .then(body => returnString = body);
+      .then(body => (returnString = body));
 
-    return returnString;;
+    return returnString;
   }
 
   /**
@@ -336,7 +336,7 @@ class Digitization {
       method: 'post',
       body: xml,
       headers: { 'Content-Type': 'text/xml' },
-    })
+    });
   }
 }
 
