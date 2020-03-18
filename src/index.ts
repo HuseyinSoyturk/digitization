@@ -25,7 +25,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Insert
    */
-  insert(feature: IGeoJson, typeName: string): void {
+  async insert(feature: IGeoJson, typeName: string) {
     const properties = feature.properties;
     const geometry = feature.geometry;
     const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
@@ -98,7 +98,12 @@ class Digitization {
 
     const finalXml = xml.end({ pretty: true });
 
-    this.fetchTheData(finalXml);
+    let returnString = ''
+    await this.fetchTheData(finalXml)
+      .then(res => res.text())
+      .then(body => returnString = body);
+
+    return returnString;;
   }
 
   /**
@@ -107,7 +112,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Update
    */
-  update(feature: IGeoJson, typeName: string): void {
+  async update(feature: IGeoJson, typeName: string) {
     const properties = feature.properties;
     const geometry = feature.geometry;
     const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
@@ -203,7 +208,12 @@ class Digitization {
 
     const finalXml = xml.end({ pretty: true });
 
-    this.fetchTheData(finalXml);
+    let returnString = ''
+    await this.fetchTheData(finalXml)
+      .then(res => res.text())
+      .then(body => returnString = body);
+
+    return returnString;;
   }
 
   /**
@@ -212,7 +222,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Delete
    */
-  delete(feature: IGeoJson, typeName: string): void {
+  async delete(feature: IGeoJson, typeName: string) {
     const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
       .att({
         xmlns: 'http://www.opengis.net/wfs',
@@ -227,7 +237,12 @@ class Digitization {
 
     const finalXml = xml.end({ pretty: true });
 
-    this.fetchTheData(finalXml);
+    let returnString = ''
+    await this.fetchTheData(finalXml)
+      .then(res => res.text())
+      .then(body => returnString = body);
+
+    return returnString;;
   }
 
   /**
@@ -316,14 +331,12 @@ class Digitization {
     return coordinates.join(' ');
   }
 
-  fetchTheData(xml: string) {
-    fetch(this.options.url, {
+  private async fetchTheData(xml: string) {
+    return fetch(this.options.url, {
       method: 'post',
       body: xml,
       headers: { 'Content-Type': 'text/xml' },
     })
-      .then(res => res.text())
-      .then(body => console.log(body));
   }
 }
 
