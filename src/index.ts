@@ -97,7 +97,7 @@ class Digitization {
     }
 
     const finalXml = xml.end({ pretty: true });
-    this.fetchTheData(finalXml)
+    this.fetchTheData(finalXml);
   }
 
   /**
@@ -201,7 +201,7 @@ class Digitization {
     xml.ele('Filter', { xmlns: 'http://www.opengis.net/ogc' }).ele('FeatureId', { fid: feature.id });
 
     const finalXml = xml.end({ pretty: true });
-    this.fetchTheData(finalXml)
+    this.fetchTheData(finalXml);
   }
 
   /**
@@ -224,7 +224,7 @@ class Digitization {
       .ele('FeatureId', { fid: feature.id });
 
     const finalXml = xml.end({ pretty: true });
-    this.fetchTheData(finalXml)
+    this.fetchTheData(finalXml);
   }
 
   /**
