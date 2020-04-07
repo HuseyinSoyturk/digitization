@@ -25,7 +25,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Insert
    */
-  insert(feature: IGeoJson, typeName: string) {
+  insert(feature: IGeoJson, typeName: string): Promise<any> {
     const properties = feature.properties;
     const geometry = feature.geometry;
     const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
@@ -97,7 +97,7 @@ class Digitization {
     }
 
     const finalXml = xml.end({ pretty: true });
-    this.fetchTheData(finalXml);
+    return this.fetchTheData(finalXml);
   }
 
   /**
@@ -106,7 +106,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Update
    */
-  update(feature: IGeoJson, typeName: string) {
+  update(feature: IGeoJson, typeName: string): Promise<any> {
     const properties = feature.properties;
     const geometry = feature.geometry;
     const joinedCoordinates = this.joinedCoordinatesGenerator(geometry, this.options.srsDimension as SrsDimension);
@@ -201,7 +201,7 @@ class Digitization {
     xml.ele('Filter', { xmlns: 'http://www.opengis.net/ogc' }).ele('FeatureId', { fid: feature.id });
 
     const finalXml = xml.end({ pretty: true });
-    this.fetchTheData(finalXml);
+    return this.fetchTheData(finalXml);
   }
 
   /**
@@ -210,7 +210,7 @@ class Digitization {
    * @param feature - Feature of GeoJson
    * @param typeName - Layer Name for Delete
    */
-  delete(feature: IGeoJson, typeName: string) {
+  delete(feature: IGeoJson, typeName: string): Promise<any> {
     const xml = XmlBuilder.create('Transaction', { encoding: 'utf-8' })
       .att({
         xmlns: 'http://www.opengis.net/wfs',
@@ -224,7 +224,7 @@ class Digitization {
       .ele('FeatureId', { fid: feature.id });
 
     const finalXml = xml.end({ pretty: true });
-    this.fetchTheData(finalXml);
+    return this.fetchTheData(finalXml);
   }
 
   /**
@@ -313,12 +313,18 @@ class Digitization {
     return coordinates.join(' ');
   }
 
-  private fetchTheData(xml: string) {
+  private fetchTheData(xml: string): Promise<any> {
     return fetch(this.options.url, {
       method: 'post',
       body: xml,
       headers: { 'Content-Type': 'text/xml' },
-    });
+    })
+      .then(res => {
+        return res;
+      })
+      .catch(err => {
+        console.warn(err);
+      });
   }
 }
 
